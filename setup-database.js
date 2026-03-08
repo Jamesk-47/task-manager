@@ -1,26 +1,18 @@
 const { Pool } = require('pg');
-const fs = require('fs');
 
-// Read database URL from .env.local file
-let databaseUrl = 'postgresql://postgres:password@localhost:5432/taskmanager';
-try {
-  const envContent = fs.readFileSync('.env.local', 'utf8');
-  const match = envContent.match(/DATABASE_URL="([^"]+)"/);
-  if (match) {
-    databaseUrl = match[1];
-  }
-} catch (err) {
-  console.log('Using default database connection string');
-}
+// Use environment variable for database URL
+const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:1234@localhost:5432/taskmanager';
 
-// First connect to postgres database to create taskmanager
+// First connect to postgres database to create taskmanager (for local development)
 const adminPool = new Pool({
   connectionString: databaseUrl.replace('/taskmanager', '/postgres'),
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Then connect to taskmanager database
 const taskPool = new Pool({
   connectionString: databaseUrl,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 async function recreateDatabase() {
@@ -30,8 +22,10 @@ async function recreateDatabase() {
   try {
     console.log('Setting up taskmanager database...');
     
-    // Step 1: Connect to postgres and create taskmanager database
-    adminClient = await adminPool.connect();
+    // Skip database creation in production (assumes database already exists)
+    if (process.env.NODE_ENV !== 'production') {
+      // Step 1: Connect to postgres and create taskmanager database
+      adminClient = await adminPool.connect();
     
     try {
       await adminClient.query('DROP DATABASE IF EXISTS taskmanager');
@@ -44,6 +38,7 @@ async function recreateDatabase() {
     console.log('Created taskmanager database');
     
     await adminClient.release();
+    }
     
     // Step 2: Connect to taskmanager and create tables
     taskClient = await taskPool.connect();
@@ -141,9 +136,9 @@ async function recreateDatabase() {
   } catch (error) {
     console.error('Error setting up database:', error.message);
     console.error('\nPlease ensure:');
-    console.error('1. PostgreSQL is installed and running');
-    console.error('2. Username is "postgres" and password is "password"');
-    console.error('3. PostgreSQL is running on localhost:5432');
+    console.error('1. DATABASE_URL environment variable is set correctly');
+    console.error('2. Database is accessible');
+    console.error('3. Proper credentials are provided');
   } finally {
     if (adminClient) adminClient.release();
     if (taskClient) taskClient.release();
