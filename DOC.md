@@ -470,122 +470,81 @@ DEBUG=next-auth
 
 ## Database Access and Management
 
-### Production Database (Neon)
+### Neon Database Console (Recommended)
 
-The Task Manager uses Neon PostgreSQL as the production database. Here's how to access and manage your database:
+**Access Method:**
+1. Go to Vercel project dashboard
+2. Click "Storage" tab
+3. Click "Open in Neon Console"
 
-#### Accessing the Database Console
+**Features:**
+- **Table Browser**: View all tables (users, tasks, sessions, accounts) in spreadsheet format
+- **SQL Editor**: Run custom queries to inspect and manage data
+- **Dashboard**: Monitor database performance and usage
 
-1. **Via Vercel Dashboard**:
-   - Go to your Vercel project dashboard
-   - Click on the "Storage" tab
-   - Click "Open in Neon Console"
-
-2. **Direct Neon Access**:
-   - Go directly to https://console.neon.tech
-   - Sign in with your credentials
-
-#### Viewing Data
-
-**Method 1: Table Browser (Easiest)**
-1. In Neon Console, click on "Tables" in the sidebar
-2. Click on any table name (users, tasks, sessions, accounts)
-3. View data in a spreadsheet-like interface
-
-**Method 2: SQL Editor**
-1. In Neon Console, go to "SQL Editor"
-2. Run queries to view data:
-
+**Common Queries:**
 ```sql
 -- View all users
-SELECT * FROM users;
+SELECT id, email, name, created_at FROM users;
 
 -- View all tasks with user info
-SELECT t.*, u.name, u.email 
+SELECT t.id, t.title, t.status, t.priority, u.name, t.created_at
 FROM tasks t 
 JOIN users u ON t.user_id = u.id;
 
--- View recent sessions
-SELECT * FROM sessions 
-ORDER BY expires DESC;
+-- View recent user registrations
+SELECT email, name, created_at 
+FROM users 
+ORDER BY created_at DESC 
+LIMIT 10;
 
--- View user statistics
-SELECT 
-  COUNT(*) as total_users,
-  COUNT(CASE WHEN created_at > NOW() - INTERVAL '7 days' THEN 1 END) as new_users_this_week
-FROM users;
+-- View active sessions
+SELECT s.session_token, u.email, s.expires 
+FROM sessions s 
+JOIN users u ON s.user_id = u.id 
+WHERE s.expires > NOW();
 ```
 
-**Method 3: Command Line**
+### Local Database Access
+
+**Connection String:**
+Get from Neon Console → Connection Details
+
+**Using psql (Command Line):**
 ```bash
-# Connect using psql (install PostgreSQL locally first)
 psql "your-neon-connection-string"
-
-# Once connected, run queries
-\dt                    # List all tables
-SELECT * FROM users;   # View users
 ```
 
-#### Database Schema Overview
+**Using GUI Tools:**
+- **pgAdmin**: Free PostgreSQL management tool
+- **DBeaver**: Universal database tool
+- **TablePlus**: Modern database client
+- **Postico**: Mac PostgreSQL client
 
-The database contains 4 main tables:
+### Database Schema Overview
 
-- **users**: User accounts and authentication data
-- **tasks**: Task management data with completion dates
-- **sessions**: NextAuth session management
-- **accounts**: NextAuth account linking for OAuth providers
+**Tables:**
+- `users` - User accounts and authentication
+- `tasks` - Task data with user relationships
+- `sessions` - NextAuth session management
+- `accounts` - OAuth account linking
 
-#### Common Management Tasks
+**Key Relationships:**
+- Tasks belong to users (`tasks.user_id → users.id`)
+- Sessions belong to users (`sessions.user_id → users.id`)
+- Accounts belong to users (`accounts.user_id → users.id`)
 
-**Adding a New User Manually**:
-```sql
-INSERT INTO users (email, name, password_hash) 
-VALUES ('user@example.com', 'User Name', 'hashed_password_here');
-```
+### Production vs Development
 
-**Viewing Task Statistics**:
-```sql
-SELECT 
-  status,
-  COUNT(*) as task_count,
-  AVG(priority) as avg_priority
-FROM tasks 
-GROUP BY status;
-```
+**Production (Neon):**
+- Accessed via Vercel → Storage → Neon Console
+- SSL required for connections
+- Automatic backups and scaling
 
-**Cleaning Up Old Sessions**:
-```sql
-DELETE FROM sessions 
-WHERE expires < NOW() - INTERVAL '1 day';
-```
-
-#### Environment Variables
-
-The database connection is configured via environment variables:
-
-```env
-# Production (Vercel)
-DATABASE_URL=postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/dbname
-
-# Local Development
-DATABASE_URL=postgresql://postgres:1234@localhost:5432/taskmanager
-```
-
-#### Backup and Export
-
-**Export Data**:
-```sql
--- Export all data to CSV
-COPY users TO 'users_backup.csv' WITH CSV HEADER;
-COPY tasks TO 'tasks_backup.csv' WITH CSV HEADER;
-```
-
-**Import Data**:
-```sql
--- Import from CSV
-COPY users FROM 'users_backup.csv' WITH CSV HEADER;
-COPY tasks FROM 'tasks_backup.csv' WITH CSV HEADER;
-```
+**Development (Local):**
+- Accessed via local PostgreSQL instance
+- Connection: `postgresql://postgres:1234@localhost:5432/taskmanager`
+- Use `setup-database.js` for initialization
 
 ## Deployment
 
