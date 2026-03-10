@@ -13,10 +13,12 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('Auth: Missing credentials');
           return null;
         }
 
         try {
+          console.log('Auth: Attempting login for:', credentials.email);
           const result = await pool.query(
             'SELECT * FROM users WHERE email = $1',
             [credentials.email]
@@ -25,6 +27,7 @@ export const authOptions = {
           const user = result.rows[0];
 
           if (!user) {
+            console.log('Auth: User not found');
             return null;
           }
 
@@ -34,9 +37,11 @@ export const authOptions = {
           );
 
           if (!isPasswordValid) {
+            console.log('Auth: Invalid password');
             return null;
           }
 
+          console.log('Auth: Login successful for:', user.email);
           return {
             id: user.id.toString(),
             email: user.email,
@@ -70,6 +75,7 @@ export const authOptions = {
     signIn: '/login',
     signUp: '/register',
   },
+  debug: process.env.NODE_ENV === 'development',
 };
 
 export default NextAuth(authOptions);
