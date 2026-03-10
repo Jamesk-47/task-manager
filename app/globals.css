@@ -224,6 +224,48 @@ html {
   .card {
     padding: 1.5rem;
   }
+  
+  /* Prevent text overflow on mobile */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Ensure buttons don't overflow */
+  button {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Better form handling on mobile */
+  input, textarea, select {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+  
+  .card {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+  
+  /* Stack buttons vertically on very small screens */
+  .button-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Better spacing for touch targets */
+  button, input, textarea, select {
+    min-height: 44px; /* iOS touch target size */
+  }
 }
 
 /* Print styles */

@@ -81,8 +81,8 @@ export default function TaskList() {
         <ul className="space-y-2">
           {tasks.map((task) => (
             <li key={task.id} className="group">
-              <div className="card px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600/50 hover:border-gray-200 dark:hover:border-gray-500 rounded-lg transition-colors">
-                <div className="flex items-start gap-3">
+              <div className="card px-3 py-3 sm:px-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600/50 hover:border-gray-200 dark:hover:border-gray-500 rounded-lg transition-colors">
+                <div className="flex items-start gap-2 sm:gap-3">
                   <div className="flex-shrink-0 pt-0.5">
                     <input
                       type="checkbox"
@@ -112,7 +112,7 @@ export default function TaskList() {
                           placeholder="Task description"
                           rows={2}
                         />
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Completion Date
@@ -155,9 +155,9 @@ export default function TaskList() {
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <p
-                            className={`text-sm font-medium ${
+                            className={`text-sm font-medium break-words ${
                               task.status === 'completed'
                                 ? 'text-gray-400 dark:text-gray-500 line-through'
                                 : 'text-gray-900 dark:text-white'
@@ -165,7 +165,7 @@ export default function TaskList() {
                           >
                             {task.title}
                           </p>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                             <button
                               onClick={() => handleEdit(task)}
                               className="px-2 py-0.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
